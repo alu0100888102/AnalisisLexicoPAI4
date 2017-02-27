@@ -78,43 +78,49 @@ public class TablaTokens {
 		tablaSimbolos.put("*","MULTIPLICATION");
 		tablaSimbolos.put("/","DIVISION");
 		tablaSimbolos.put("%","MODULUS");
-		tablaSimbolos.put("&","BITAND");
-		tablaSimbolos.put("|","BITOR");
-		tablaSimbolos.put("^","BITXOR");
-		tablaSimbolos.put("~","BITCOMPLIMENT");
-		tablaSimbolos.put("&&","LOGICAND");
-		tablaSimbolos.put("||","LOGICOR");
-		tablaSimbolos.put("!","LOGICNOT");
-		tablaSimbolos.put("<","LESSTHAN");
-		tablaSimbolos.put(">","GREATERTHAN");
-		tablaSimbolos.put("<=","LESSOREQTHAN");
-		tablaSimbolos.put(">=","GTOREQTHAN");
-		tablaSimbolos.put("<<","LEFTSHIFT");
-		tablaSimbolos.put(">>","RIGHTSHIFT");
-		tablaSimbolos.put(">>>","ZRIGHTSHIFT");
+		tablaSimbolos.put("&","BIT_AND");
+		tablaSimbolos.put("|","BIT_OR");
+		tablaSimbolos.put("^","BIT_XOR");
+		tablaSimbolos.put("~","BIT_COMPLIMENT");
+		tablaSimbolos.put("&&","LOGI_CAND");
+		tablaSimbolos.put("||","LOGI_COR");
+		tablaSimbolos.put("!","LOGIC_NOT");
+		tablaSimbolos.put("<","LESS_THAN");
+		tablaSimbolos.put(">","GREATER_THAN");
+		tablaSimbolos.put("<=","LESS_OR_EQTHAN");
+		tablaSimbolos.put(">=","GT_OR_EQ_THAN");
+		tablaSimbolos.put("<<","LEFT_SHIFT");
+		tablaSimbolos.put(">>","RIGHT_SHIFT");
+		tablaSimbolos.put(">>>","Z_RIGHT_SHIFT");
 		tablaSimbolos.put("=","ASSIGN");
 		tablaSimbolos.put("?","CONDITIONAL");
 		tablaSimbolos.put(":","CONDITIONAL");
 		tablaSimbolos.put("++","INCREMENT");
 		tablaSimbolos.put("--","DECREMENT");
-		tablaSimbolos.put("==","EQUALTO");
-		tablaSimbolos.put("+=","ADDASSGN");
-		tablaSimbolos.put("-=","SUBASSIGN");
-		tablaSimbolos.put("*=","MULTASSIGN");
-		tablaSimbolos.put("/=","DIVASSIGN");
-		tablaSimbolos.put("%=","MODASSIGN");
-		tablaSimbolos.put("&=","BITANDASSIGN");
-		tablaSimbolos.put("|=","BITORASSIGN");
-		tablaSimbolos.put("^=","BITXORASSIGN");
-		tablaSimbolos.put("!=","NOTEQUALTO");
-		tablaSimbolos.put("<<=","LEFTSHIFTASSIGN");
-		tablaSimbolos.put(">>=","RIGHTSHIFTASSIGN");
-		tablaSimbolos.put(">>>=","ZRIGHTSIFTASSIGN");
+		tablaSimbolos.put("==","EQUAL_TO");
+		tablaSimbolos.put("+=","ADD_ASSGN");
+		tablaSimbolos.put("-=","SUB_ASSIGN");
+		tablaSimbolos.put("*=","MULT_ASSIGN");
+		tablaSimbolos.put("/=","DIV_ASSIGN");
+		tablaSimbolos.put("%=","MOD_ASSIGN");
+		tablaSimbolos.put("&=","BIT_AND_ASSIGN");
+		tablaSimbolos.put("|=","BIT_OR_ASSIGN");
+		tablaSimbolos.put("^=","BIT_XOR_ASSIGN");
+		tablaSimbolos.put("!=","NOT_EQUAL_TO");
+		tablaSimbolos.put("<<=","LEFT_SHIFT_ASSIGN");
+		tablaSimbolos.put(">>=","RIGHT_SHIFT_ASSIGN");
+		tablaSimbolos.put(">>>=","Z_RIGHT_SHIFT_ASSIGN");
+		tablaSimbolos.put(" \" ","QUOTE");
+		tablaSimbolos.put(" ' ","SINGLE_QUOTE");
+		tablaSimbolos.put(" /* ","COMMENT");
+		tablaSimbolos.put(" /** ","COMMENT");
+		tablaSimbolos.put(" // ","COMMENT");
+		tablaSimbolos.put(" */ ","END_COMMENT");
 	}
 	
 	public String getToken(String word){
 		if(!tablaSimbolos.containsKey(word))
-			return null;
+			return "TOKEN_ERROR";
 		return tablaSimbolos.get(word);
 	}
 }

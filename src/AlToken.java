@@ -6,14 +6,14 @@
  * Ángel Hamilton Lopez
  * alu0100888102@ull.es
  */
-public class Token {
+public class AlToken {
 	int line;
 	int pos;
 	String token;
 	String text;
 	
-	public Token(){}
-	public Token(int l, int p, String to, String te){
+	public AlToken(){}
+	public AlToken(int l, int p, String to, String te){
 		line = l;
 		pos = p;
 		token = to;
