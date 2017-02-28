@@ -110,29 +110,30 @@ public class TablaTokens {
 		tablaSimbolos.put("<<=","LEFT_SHIFT_ASSIGN");
 		tablaSimbolos.put(">>=","RIGHT_SHIFT_ASSIGN");
 		tablaSimbolos.put(">>>=","Z_RIGHT_SHIFT_ASSIGN");
-		tablaSimbolos.put(" \" ","QUOTE");
-		tablaSimbolos.put(" ' ","SINGLE_QUOTE");
-		tablaSimbolos.put(" /* ","COMMENT");
-		tablaSimbolos.put(" /** ","COMMENT");
-		tablaSimbolos.put(" // ","COMMENT");
-		tablaSimbolos.put(" */ ","END_COMMENT");
+		tablaSimbolos.put("\"","QUOTE");
+		tablaSimbolos.put("'","SINGLE_QUOTE");
+		tablaSimbolos.put("/*","COMMENT");
+		tablaSimbolos.put("/**","COMMENT");
+		tablaSimbolos.put("//","COMMENT");
+		tablaSimbolos.put("*/","END_COMMENT");
 	}
 	
 	public String getToken(String word){
 		if(word == null)
 			return "NULL";
-		if(word.matches("^( \\w+ [a-zA-Z0-9_]* )$"))
-			return "ID";
-		if(word.endsWith("\"") || word.endsWith("'"))
+		if((word.endsWith("\"") || word.endsWith("'")) && word.length() >1)
 			return "STRING";
 		if(word.startsWith("\"" ) || word.startsWith("'" ))
 			return "UNFINISHED_STRING";
-		if(word.matches("^([+-]?  \\d+)$"))
+		if(word.matches("^([+-]?\\d+)$"))
 			return "INT";
-		if(word.matches("^(\\d+ \\. \\d+)$"))
+		if(word.matches("^([+-]?\\d+\\.\\d+)$"))
 			return "FLOAT";
 		if(!tablaSimbolos.containsKey(word))
-			return "TOKEN_ERROR";
+			if(word.matches("^(\\w[a-zA-Z0-9_]*)$"))
+				return "ID";
+			else
+				return "TOKEN_ERROR";
 		return tablaSimbolos.get(word);
 	}
 }
