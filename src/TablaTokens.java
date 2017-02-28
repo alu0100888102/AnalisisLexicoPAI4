@@ -119,6 +119,18 @@ public class TablaTokens {
 	}
 	
 	public String getToken(String word){
+		if(word == null)
+			return "NULL";
+		if(word.matches("^( \\w+ [a-zA-Z0-9_]* )$"))
+			return "ID";
+		if(word.endsWith("\"") || word.endsWith("'"))
+			return "STRING";
+		if(word.startsWith("\"" ) || word.startsWith("'" ))
+			return "UNFINISHED_STRING";
+		if(word.matches("^([+-]?  \\d+)$"))
+			return "INT";
+		if(word.matches("^(\\d+ \\. \\d+)$"))
+			return "FLOAT";
 		if(!tablaSimbolos.containsKey(word))
 			return "TOKEN_ERROR";
 		return tablaSimbolos.get(word);

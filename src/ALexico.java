@@ -29,12 +29,12 @@ public class ALexico {
 			BufferedReader bufferreader = new BufferedReader(new InputStreamReader(istream));
 		 
 			String line = null;
-			//Comment indica si es un comentario y Cadena si es una cadena literal (entre"").
-			Boolean comment= false, cadena=false;
+			//Comment indica si es un comentario.
+			Boolean comment= false;
 			while ((line = bufferreader.readLine()) != null) {
 				if(line.isEmpty())
 					continue;
-				ArrayList<AlToken> newTokens = tokenize(line, nlinea , comment, cadena);
+				ArrayList<AlToken> newTokens = tokenize(line, nlinea , comment);
 				if(!comment)
 					tokensPrograma.addAll(newTokens);
 				nlinea++;
@@ -55,31 +55,115 @@ public class ALexico {
 		}
 	}
 	
-	public ArrayList<AlToken> tokenize(String line, int nlinea, Boolean comment, Boolean cadena){
+	public ArrayList<AlToken> tokenize(String line, int nlinea, Boolean comment){
 		ArrayList<AlToken> output = new ArrayList<AlToken>();
-		String nuevaPalabra;
+		//En  nuevaPalabra se iran almacenando los caracteres
+		String nuevaPalabra = null;
+		//este indice se actualiza cada vez que empezamos una palabra nueva
 		int comienzoPalabra = 0;
 		for(int i =0; i< line.length(); i++){
+			//cojemos el caracter en la posicion i y comprobamos nuevapalabra, que estará formada por los anteriores caracteres
 			char ch = line.charAt(i);
+			String temp = tabla.getToken(nuevaPalabra);
+			if(temp.matches("COMMENT"))
+				comment = true;
+			if(temp.matches("END_COMMENT"))
+				comment = false;
+
 			if(ch == '\b' || ch == '\t'){
 				if(nuevaPalabra != null && !comment){
-					String temp = tabla.getToken(nuevaPalabra);
 					AlToken tempToken;
-					if(cadena && !temp.matches("QUOTE") && !temp.matches("SINGLE_QUOTE"))
-						tempToken = new AlToken(nlinea, comienzoPalabra, "LITERAL_STRING", nuevaPalabra);
+					//si la cadena es un string sin terminar, añadimos el espacio al string y seguimos con el bucle
+					if(temp.matches("UNFINISHED_STRING")){
+						nuevaPalabra += " ";
+						continue;
+					}
+					//si no, entonces añadimos nuevapalabra a la salida. los espacios no se guardan.
 					else
 						tempToken = new AlToken(nlinea, comienzoPalabra, temp, nuevaPalabra);
-					if(temp.matches("QUOTE") && temp.matches("SINGLE_QUOTE"))
-						cadena = !cadena;
-					if(temp.matches("END_COMMENT"))
-						comment = false;
-					if(temp.matches("COMMENT"))
-						comment = true;
 					output.add(tempToken);
 				}
+				//la nueva palabra comenzará en el siguiente caracter
 				comienzoPalabra = i+1;
+				nuevaPalabra = null;
+				continue;
 			}
-			if(ch == )
+			
+			if(ch == '\'' || ch == '\"'){
+				if(nuevaPalabra != null && !comment){
+					AlToken tempToken= null;
+					//si no es un string a medio hacer, lo anterior es una palabra.
+					if(!temp.matches("UNFINISHED_STRING")){
+						tempToken = new AlToken(nlinea, comienzoPalabra, temp, nuevaPalabra);
+						output.add(tempToken);
+						nuevaPalabra = new String();
+						nuevaPalabra += ch;
+						temp = tabla.getToken(nuevaPalabra);
+					}
+					//si es un string a medio hacer, añadimos el caracter
+					else{
+						nuevaPalabra += ch;
+						temp = tabla.getToken(nuevaPalabra);
+					}
+					//si el string está terminado con esto, lo añadimos
+					if(temp.matches("STRING")){
+						tempToken = new AlToken(nlinea, comienzoPalabra, temp, nuevaPalabra);
+						output.add(tempToken);
+						nuevaPalabra= null;
+					}
+				}
+				//si no hay palabra, añadimos la " a una nueva palabra
+				if(nuevaPalabra == null && !comment){
+					nuevaPalabra = new String();
+					comienzoPalabra = i;
+					nuevaPalabra += ch;
+				}
+				continue;
+			}
+			
+			if(Character.isLetterOrDigit(ch) || ch == '_'){
+				//si son parte de un identificador y ya hay una palabra
+				if(!comment && nuevaPalabra != null){
+					nuevaPalabra += ch;
+				}
+				//si son parte de un identificador y no hay palabra los añadimos a una nueva
+				if(!comment && nuevaPalabra == null){
+					nuevaPalabra = new String();
+					comienzoPalabra = i;
+					nuevaPalabra += ch;
+				}
+				continue;
+			}
+			
+			
+			if (ch == '.'){
+				//un punto puede ser parte de un float o para indicar un metodo.
+				if(temp.matches("INT")){
+					nuevaPalabra += ch;
+				}
+				else{
+					AlToken tempToken = new AlToken(nlinea, comienzoPalabra, temp, nuevaPalabra);
+					output.add(tempToken);
+					nuevaPalabra= new String();
+					nuevaPalabra += ch;
+					temp = tabla.getToken(nuevaPalabra);
+					tempToken = new AlToken(nlinea, comienzoPalabra, temp, nuevaPalabra);
+					output.add(tempToken);
+					nuevaPalabra = null;
+					
+				}
+				continue;
+			}
+			
+			//en otro caso.
+			AlToken tempToken = new AlToken(nlinea, comienzoPalabra, temp, nuevaPalabra);
+			output.add(tempToken);
+			nuevaPalabra= new String();
+			nuevaPalabra += ch;
+			temp = tabla.getToken(nuevaPalabra);
+			tempToken = new AlToken(nlinea, comienzoPalabra, temp, nuevaPalabra);
+			output.add(tempToken);
+			nuevaPalabra = null;
 		}
 		return output;
 	}
