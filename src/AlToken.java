@@ -47,4 +47,23 @@ public class AlToken {
 	public String toString(){
 		return line + " " + pos + " " + token + " " + text+ " ";
 	}
+	
+	 @Override
+	public boolean equals(Object o){
+		if(o == this)
+			return true;
+		if(o instanceof AlToken){
+			AlToken t = (AlToken)o;
+			if(t.getLine()!= this.line)
+				return false;
+			if(t.getPos() != this.pos)
+				return false;
+			if(t.getText() != this.text)
+				return false;
+			if(t.getToken() != this.token)
+				return false;
+			return true;
+		}
+		return false;
+	} 
 }

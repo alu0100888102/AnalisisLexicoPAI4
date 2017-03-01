@@ -1,5 +1,6 @@
 import static org.junit.Assert.*;
-
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Test;
 
 public class ALexicoTest {
@@ -104,7 +105,7 @@ public class ALexicoTest {
 		assertEquals(table.getToken(">>>="),"Z_RIGHT_SHIFT_ASSIGN");
 		assertEquals(table.getToken("/*"),"COMMENT");
 		assertEquals(table.getToken("/**"),"COMMENT");
-		assertEquals(table.getToken("//"),"COMMENT");
+		assertEquals(table.getToken("//"),"LINE_COMMENT");
 		assertEquals(table.getToken("*/"),"END_COMMENT");
 		assertEquals(table.getToken("1"),"INT");
 		assertEquals(table.getToken("1.1"),"FLOAT");
@@ -112,7 +113,23 @@ public class ALexicoTest {
 		assertEquals(table.getToken("\"Holakase\""),"STRING");
 		assertEquals(table.getToken("\"Holakase"),"UNFINISHED_STRING");
 		assertEquals(table.getToken("3Hola-k.ase"),"TOKEN_ERROR");
-		assertEquals(table.getToken(null),"NULL");
+		assertEquals(table.getToken(null),"TOKEN_ERROR");
+	}
+	
+	@Test
+	public final void testTokenize() {
+		String cadena = "public (Hola =    9.2\"Baila baila\"); ";
+		ArrayList<AlToken> testTokens = new ArrayList<AlToken>();
+		testTokens.add(new AlToken(0,0,"KWPUBLIC","public"));
+		testTokens.add(new AlToken(0,7,"OPAR","("));
+		testTokens.add(new AlToken(0,8,"ID","Hola"));
+		testTokens.add(new AlToken(0,13,"ASSIGN","="));
+		testTokens.add(new AlToken(0,18,"FLOAT","9.2"));
+		testTokens.add(new AlToken(0,21,"STRING","\"Baila baila\""));
+		testTokens.add(new AlToken(0,34,"CPAR",")"));
+		testTokens.add(new AlToken(0,35,"SEMICOLON",";"));
+		ALexico test = new ALexico();
+		assertEquals(test.tokenize(cadena, 0, new AtomicBoolean(false)), (testTokens));
 	}
 
 }

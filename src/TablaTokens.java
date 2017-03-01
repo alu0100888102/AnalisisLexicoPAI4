@@ -114,13 +114,13 @@ public class TablaTokens {
 		tablaSimbolos.put("'","SINGLE_QUOTE");
 		tablaSimbolos.put("/*","COMMENT");
 		tablaSimbolos.put("/**","COMMENT");
-		tablaSimbolos.put("//","COMMENT");
+		tablaSimbolos.put("//","LINE_COMMENT");
 		tablaSimbolos.put("*/","END_COMMENT");
 	}
 	
 	public String getToken(String word){
 		if(word == null)
-			return "NULL";
+			return "TOKEN_ERROR";
 		if((word.endsWith("\"") || word.endsWith("'")) && word.length() >1)
 			return "STRING";
 		if(word.startsWith("\"" ) || word.startsWith("'" ))

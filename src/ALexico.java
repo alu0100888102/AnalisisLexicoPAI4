@@ -10,6 +10,7 @@
  */
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.io.*;
 
 public class ALexico {
@@ -30,15 +31,16 @@ public class ALexico {
 		 
 			String line = null;
 			//Comment indica si es un comentario.
-			Boolean comment= false;
+			AtomicBoolean comment = new AtomicBoolean(false);
 			while ((line = bufferreader.readLine()) != null) {
 				if(line.isEmpty())
 					continue;
 				ArrayList<AlToken> newTokens = tokenize(line, nlinea , comment);
-				if(!comment)
+				if(!comment.get())
 					tokensPrograma.addAll(newTokens);
 				nlinea++;
 			}
+			tokensPrograma.add(new AlToken(nlinea,0,"EOF",""));
 			bufferreader.close();
 		}
 		catch(FileNotFoundException e){
@@ -55,7 +57,8 @@ public class ALexico {
 		}
 	}
 	
-	public ArrayList<AlToken> tokenize(String line, int nlinea, Boolean comment){
+	public ArrayList<AlToken> tokenize(String line, int nlinea, AtomicBoolean comment){
+		boolean lineComment = comment.get();
 		ArrayList<AlToken> output = new ArrayList<AlToken>();
 		//En  nuevaPalabra se iran almacenando los caracteres
 		String nuevaPalabra = null;
@@ -66,12 +69,12 @@ public class ALexico {
 			char ch = line.charAt(i);
 			String temp = tabla.getToken(nuevaPalabra);
 			if(temp.matches("COMMENT"))
-				comment = true;
+				comment.getAndSet(true);
 			if(temp.matches("END_COMMENT"))
-				comment = false;
+				comment.getAndSet(false);
 
-			if(ch == '\b' || ch == '\t'){
-				if(nuevaPalabra != null && !comment){
+			if(Character.isWhitespace(ch)){
+				if(nuevaPalabra != null && !lineComment){
 					AlToken tempToken;
 					//si la cadena es un string sin terminar, añadimos el espacio al string y seguimos con el bucle
 					if(temp.matches("UNFINISHED_STRING")){
@@ -90,7 +93,7 @@ public class ALexico {
 			}
 			
 			if(ch == '\'' || ch == '\"'){
-				if(nuevaPalabra != null && !comment){
+				if(nuevaPalabra != null && !lineComment){
 					AlToken tempToken= null;
 					//si no es un string a medio hacer, lo anterior es una palabra.
 					if(!temp.matches("UNFINISHED_STRING")){
@@ -99,6 +102,7 @@ public class ALexico {
 						nuevaPalabra = new String();
 						nuevaPalabra += ch;
 						temp = tabla.getToken(nuevaPalabra);
+						comienzoPalabra = i;
 					}
 					//si es un string a medio hacer, añadimos el caracter
 					else{
@@ -110,10 +114,12 @@ public class ALexico {
 						tempToken = new AlToken(nlinea, comienzoPalabra, temp, nuevaPalabra);
 						output.add(tempToken);
 						nuevaPalabra= null;
+						comienzoPalabra = i+1;
+						continue;
 					}
 				}
 				//si no hay palabra, añadimos la " a una nueva palabra
-				if(nuevaPalabra == null && !comment){
+				if(nuevaPalabra == null && !lineComment){
 					nuevaPalabra = new String();
 					comienzoPalabra = i;
 					nuevaPalabra += ch;
@@ -123,11 +129,11 @@ public class ALexico {
 			
 			if(Character.isLetterOrDigit(ch) || ch == '_'){
 				//si son parte de un identificador y ya hay una palabra
-				if(!comment && nuevaPalabra != null){
+				if(!lineComment && nuevaPalabra != null){
 					nuevaPalabra += ch;
 				}
 				//si son parte de un identificador y no hay palabra los añadimos a una nueva
-				if(!comment && nuevaPalabra == null){
+				if(!lineComment && nuevaPalabra == null){
 					nuevaPalabra = new String();
 					comienzoPalabra = i;
 					nuevaPalabra += ch;
@@ -136,7 +142,7 @@ public class ALexico {
 			}
 			
 			
-			if (ch == '.'){
+			if (ch == '.' && !lineComment){
 				//un punto puede ser parte de un float o para indicar un metodo.
 				if(temp.matches("INT")){
 					nuevaPalabra += ch;
@@ -155,16 +161,80 @@ public class ALexico {
 				continue;
 			}
 			
+			//Si es una / podia ser el inicio o final de un comentario
+			if(ch == '/'){
+				if(temp.matches("UNFINISHED_STRING")){
+					nuevaPalabra += ch;
+					continue;
+				}
+				//si no forma parte de una cadena comprobalos el token que se forma con el / y el siguiente (podria ser // o /* o /**
+				String tempstring = new String();
+				tempstring = tempstring + ch + line.charAt(i+1);
+				String checkComment = tabla.getToken(tempstring);
+				if(checkComment.matches("COMMENT")){
+					comment.getAndSet(true);
+					lineComment = true;
+					nuevaPalabra = null;
+				}
+				if(checkComment.matches("LINE_COMMENT")){
+					lineComment = true;
+					nuevaPalabra = null;
+				}
+				//si no lo es comprobamos si es el final de un comentario */
+				if(i >0){
+					tempstring = new String();
+					tempstring = tempstring + line.charAt(i-1)+ ch;
+					checkComment = tabla.getToken(tempstring);
+					if(checkComment.matches("END_COMMENT")){
+						comment.getAndSet(false);
+						lineComment = false;
+						nuevaPalabra = null;
+						continue;
+					}
+				}
+			}
 			//en otro caso.
-			AlToken tempToken = new AlToken(nlinea, comienzoPalabra, temp, nuevaPalabra);
-			output.add(tempToken);
-			nuevaPalabra= new String();
-			nuevaPalabra += ch;
-			temp = tabla.getToken(nuevaPalabra);
-			tempToken = new AlToken(nlinea, comienzoPalabra, temp, nuevaPalabra);
-			output.add(tempToken);
-			nuevaPalabra = null;
+			if(temp.matches("UNFINISHED_STRING")){
+				nuevaPalabra += ch;
+				continue;
+			}
+			if(!lineComment){
+				if(nuevaPalabra != null){
+					AlToken tempToken = new AlToken(nlinea, comienzoPalabra, temp, nuevaPalabra);
+					output.add(tempToken);
+					comienzoPalabra = i+1;
+				}
+				nuevaPalabra= new String();
+				nuevaPalabra += ch;
+				temp = tabla.getToken(nuevaPalabra);
+				AlToken tempToken = new AlToken(nlinea, comienzoPalabra, temp, nuevaPalabra);
+				output.add(tempToken);
+				nuevaPalabra = null;
+				comienzoPalabra = i+1;
+			}
+			if(lineComment){
+				nuevaPalabra = null;
+				comienzoPalabra = i+1;
+			}
 		}
 		return output;
+	}
+	
+	public void write(File output){
+		try{
+			FileWriter writer = new FileWriter(output);
+			for(int i =0; i < tokensPrograma.size(); i++){
+				writer.write(tokensPrograma.get(i)+"\n");
+			}
+			writer.close();
+		}
+		catch(FileNotFoundException e){
+			System.out.println("Error en el fichero: no se encuentra " + e);
+			System.exit(1);
+		}
+		catch(IOException e){
+			System.out.println("Error en el fichero: error de entrada/salida " + e);
+			System.exit(1);
+		}
 	}
 }
